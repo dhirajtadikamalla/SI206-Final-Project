@@ -8,7 +8,19 @@ import os
 1. pull cases from each day for 100 days (USA)
 2. Total Cases until now (100 countries) vs. GDP
 '''
+def setUpDatabase(db_name):
+    path = os.path.dirname(os.path.abspath(__file__))
+    conn = sqlite3.connect(path+'/'+db_name)
+    cur = conn.cursor()
+    sql = '''CREATE TABLE IF NOT EXISTS CASES (
+        DATE CHAR(10),
+        CASES INTEGER)'''
+    cur.execute(sql)
+    return cur, conn
+
+
 class dayCase:
+
     def __init__(self, start_date, end_date):
         self.start_date = start_date
         self.end_date = end_date
@@ -22,8 +34,12 @@ class dayCase:
         data = jsons.get('data')
         for date in data:
             dates = date
-            USA = data[date]['USA']
-            cases = USA.get('confirmed')
+            USA = data[date].get('USA')
+            if USA is None:
+                continue
+            else:
+                cases = USA.get('confirmed')
+        INSERT INTO CASES (Date, Cases)
             
         return jsons
 
@@ -33,6 +49,7 @@ def main():
     USA_cases = dayCase('2020-08-01', '2020-12-01')
     USA_cases.create_request_url()
     USA_cases.get_data()
+    cur, conn = setUpDatabase('Covid_Cases_USA.db')``
 
 if __name__ == "__main__":
 	main()
