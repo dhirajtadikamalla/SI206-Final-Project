@@ -3,6 +3,7 @@ import requests
 import sqlite3
 import json
 import os
+from datetime import datetime, timedelta
 
 '''
 1. pull cases from each day for 100 days (USA)
@@ -23,10 +24,31 @@ def setUpDatabase(db_name):
     return cur, conn
 
 def setUpCasesTable(cur, conn):
-    functionData = get_data('2020-08-01', '2020-12-01')
     cur.execute('CREATE TABLE IF NOT EXISTS Cases (Date CHAR(10), Cases INTEGER)')
-    for i in functionData:
-        cur.execute('INSERT INTO Cases (Date, Cases) VALUES (?, ?)', (i[0], i[1]))
+    get_data('2020-08-01', '2020-08-25')
+    n = 25
+    x = 0
+    for i in range(5):
+        specific_date = datetime(2020, 8, 1)
+        start_date1 = specific_date + timedelta(x)
+        startpoint = (str((start_date1)).split()[0])
+        new_date = specific_date + timedelta(n)
+        endpoint = (str((new_date)).split()[0])
+        functionData = get_data(startpoint, endpoint)
+        for i in functionData:
+            cur.execute('INSERT INTO Cases (Date, Cases) VALUES (?, ?)', (i[0], i[1]))
+        n += 25
+        x += 25
+
+    # functionData1 = get_data('2020-08-26', '2020-09-20')
+    # for i in functionData1:
+    #     cur.execute('INSERT INTO Cases (Date, Cases) VALUES (?, ?)', (i[0], i[1]))
+    # functionData2 = get_data('2020-09-21', '2020-10-16')
+    # for i in functionData2:
+    #     cur.execute('INSERT INTO Cases (Date, Cases) VALUES (?, ?)', (i[0], i[1]))
+
+
+        
     conn.commit()
 
 
