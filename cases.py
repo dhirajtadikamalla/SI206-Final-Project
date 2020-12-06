@@ -70,7 +70,6 @@ def setUpCasesTable(cur, conn):
     # for i in functionData2:
     #     cur.execute('INSERT INTO Cases (Date, Cases) VALUES (?, ?)', (i[0], i[1]))
 
-
 #class dayCase:
 
     #def __init__(self, start_date, end_date):
@@ -92,6 +91,17 @@ def get_data(start_date, end_date):
             dateCases.append((date, cases))
     return dateCases
 
+def total_cases():
+    cases_per_country = []
+    url = 'https://covid-api.mmediagroup.fr/v1/cases'
+    request = requests.get(url)
+    jsons = json.loads(request.text)
+    for country in jsons:
+        data = jsons[country].get('All')
+        confirmed = data.get('confirmed')
+        cases_per_country.append((country, confirmed))
+    return cases_per_country
+
 
 
 def main():
@@ -99,6 +109,7 @@ def main():
     # USA_cases.create_request_url()
     # USA_cases.get_data()
     get_data('2020-08-01', '2020-12-01')
+    total_cases()
     cur, conn = setUpDatabase('Covid_Cases_USA.db')
     setUpCasesTable(cur, conn)
 
