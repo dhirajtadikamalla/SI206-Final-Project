@@ -9,6 +9,9 @@ from datetime import datetime, timedelta
 1. pull cases from each day for 100 days (USA)
 2. Total Cases until now (100 countries) vs. GDP
 '''
+
+#stringency
+
 def readDataFromFile(filename):
     full_path = os.path.join(os.path.dirname(__file__), filename)
     f = open(full_path, encoding='utf-8')
