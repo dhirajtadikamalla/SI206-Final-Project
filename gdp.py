@@ -6,18 +6,6 @@ import json
 import os
 from datetime import datetime, timedelta
 
-'''
-1. pull cases from each day for 100 days (USA)
-2. Total Cases until now (100 countries) vs. GDP
-'''
-def readDataFromFile(filename):
-    full_path = os.path.join(os.path.dirname(__file__), filename)
-    f = open(full_path, encoding='utf-8')
-    file_data = f.read()
-    f.close()  
-    json_data = json.loads(file_data)
-    return json_data
-
 def setUpDatabase(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path+'/'+db_name)
@@ -27,10 +15,6 @@ def setUpDatabase(db_name):
 def setUpGDPTable(cur, conn):
     cur.execute('CREATE TABLE IF NOT EXISTS GDP (id INTEGER, country TEXT, current INTEGER, previous INTEGER, date CHAR(6))')
     all_data = get_data()
-    country_list = []
-    GDP_list = []
-    previous_GDP_list = []
-    date_list = []
     n = 0
     x = 25
     cur.execute('SELECT id FROM GDP ORDER BY id DESC LIMIT 1')
@@ -46,49 +30,13 @@ def setUpGDPTable(cur, conn):
         data = all_data[n + i]
         country_id = data[0]
         country = data[1]
-        country_list.append(country)
         GDP = data[2]
-        GDP_list.append(GDP)
         previous_GDP = data[3]
-        previous_GDP_list.append(previous_GDP)
         date = data[4]
-        date_list.append(date)
         cur.execute('INSERT INTO GDP (id, country, current, previous, date) VALUES (?,?, ?, ?, ?)', (country_id, country, GDP, previous_GDP, date,))
     conn.commit()
 
-# 
-
-    # n = 25
-    # x = 0
-    # for i in range(5):
-    #     specific_date = datetime(2020, 8, 1)
-    #     start_date1 = specific_date + timedelta(x)
-    #     startpoint = (str((start_date1)).split()[0])
-    #     new_date = specific_date + timedelta(n)
-    #     endpoint = (str((new_date)).split()[0])
-    #     functionData = get_data(startpoint, endpoint)
-        
-    #     for i in functionData:
-    #         cur.execute('INSERT INTO GDP Growth (country, current, previous, date) VALUES (?, ?, ?, ?)', (i[0], i[1]))
-    #     n += 25
-    #     x += 25
-
-    # functionData1 = get_data('2020-08-26', '2020-09-20')
-    # for i in functionData1:
-    #     cur.execute('INSERT INTO Cases (Date, Cases) VALUES (?, ?)', (i[0], i[1]))
-    # functionData2 = get_data('2020-09-21', '2020-10-16')
-    # for i in functionData2:
-    #     cur.execute('INSERT INTO Cases (Date, Cases) VALUES (?, ?)', (i[0], i[1]))
-
-
-#class dayCase:
-
-    #def __init__(self, start_date, end_date):
-    #    self.start_date = start_date
-    #    self.end_date = end_date
-
 def get_data():
-    # url = 'https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG'
     url = 'https://tradingeconomics.com/country-list/gdp'
     all_data = []
     request = requests.get(url)
@@ -130,18 +78,11 @@ def get_data():
 
 
 def main():
-    # USA_cases = dayCase('2020-08-01', '2020-12-01')
-    # USA_cases.create_request_url()
-    # USA_cases.get_data()
-    # create_request_url('2020-08-01', '2020-12-01')
-    # get_data('2020-08-01', '2020-12-01')
-    get_data()
+
     cur, conn = setUpDatabase('Covid_Cases_USA.db')
     setUpGDPTable(cur, conn)
 
     conn.close()
-    # json_data = readDataFromFile('yelp_data.txt')
-    # setUpCategoriesTable(json_data, cur, conn)
     
 
 if __name__ == "__main__":
