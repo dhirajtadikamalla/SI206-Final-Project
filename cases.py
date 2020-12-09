@@ -75,6 +75,33 @@ def setUpCasesTable(cur, conn):
     #def __init__(self, start_date, end_date):
     #    self.start_date = start_date
     #    self.end_date = end_date
+def setUpTotalCasesTable(cur, conn):
+    cur.execute('CREATE TABLE IF NOT EXISTS TotalCases (country_id INTEGER, abbreviation CHAR(4), country TEXT, cases INTEGER)')
+    all_cases = total_cases()
+    n = 0
+    x = 25
+    cur.execute('SELECT country_id FROM TotalCases ORDER BY country_id DESC LIMIT 1')
+    try:
+        last_entry = cur.fetchone()[0]
+        for index in range(len(all_cases)):
+            if all_cases[index][0] == last_entry:
+                n = index + 1
+                x = n + 25
+    except:
+        last_entry = 0
+
+    for i in range(len(all_cases[n:x])):
+        data = all_cases[n + i]
+        ids = data[0]
+        abbreviation = data[1]
+        country = data[2]
+        if country == 'US':
+            country = 'United States'
+        if country == 'Taiwan*':
+            country = 'Taiwan'
+        cases = data[3]
+        cur.execute('INSERT INTO TotalCases (country_id, abbreviation, country, cases) VALUES (?,?,?,?)', (ids, abbreviation, country, cases))
+    conn.commit()
 
 def get_data(start_date, end_date):
     request_url = f'https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/date-range/{start_date}/{end_date}'
@@ -96,12 +123,15 @@ def total_cases():
     url = 'https://covid-api.mmediagroup.fr/v1/cases'
     request = requests.get(url)
     jsons = json.loads(request.text)
+    i = 0
     for country in jsons:
+        country_id = i
         data = jsons[country].get('All')
+        code = data.get('abbreviation')
         confirmed = data.get('confirmed')
-        cases_per_country.append((country, confirmed))
+        cases_per_country.append((country_id, code, country, confirmed))
+        i += 1
     return cases_per_country
-
 
 
 def main():
@@ -109,10 +139,9 @@ def main():
     # USA_cases.create_request_url()
     # USA_cases.get_data()
     get_data('2020-08-01', '2020-12-01')
-    total_cases()
     cur, conn = setUpDatabase('Covid_Cases_USA.db')
     setUpCasesTable(cur, conn)
-
+    setUpTotalCasesTable(cur, conn)
     conn.close()
     # json_data = readDataFromFile('yelp_data.txt')
     # setUpCategoriesTable(json_data, cur, conn)
