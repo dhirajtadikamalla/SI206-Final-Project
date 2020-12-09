@@ -3,6 +3,7 @@ import requests
 import sqlite3
 import json
 import os
+import csv
 from datetime import datetime, timedelta
 
 '''
@@ -49,13 +50,17 @@ def setUpDatabase(db_name):
 #     conn.commit()
 
 def cases_per_day(cur, conn):
-    cur.execute('SELECT Cases FROM Cases ORDER BY Date ASC LIMIT 1')
-    first_cases = cur.fetchone()[0]
-    cur.execute('SELECT Cases FROM Cases ORDER BY Date DESC LIMIT 1')
-    last_cases = cur.fetchone()[0]
-    cur.execute('SELECT Cases FROM Cases')
+    avg_cases = []
+    cur.execute('SELECT United_States, Russia, Poland, Norway, Egypt, New_Zealand, Cuba, Ghana, Lebanon, Uganda FROM Cases ORDER BY Date ASC LIMIT 1')
+    first_cases = cur.fetchall()[0]
+    cur.execute('SELECT United_States, Russia, Poland, Norway, Egypt, New_Zealand, Cuba, Ghana, Lebanon, Uganda FROM Cases ORDER BY Date DESC LIMIT 1')
+    last_cases = cur.fetchall()[0]
+    cur.execute('SELECT Date FROM Cases')
     num_days = cur.fetchall()
-    avg_cases = (last_cases - first_cases) / len(num_days)
+    countries = ['United_States', 'Russia', 'Poland', 'Norway', 'Egypt', 'New_Zealand', 'Cuba', 'Ghana', 'Lebanon', 'Uganda']
+    for index in range(len(first_cases)):
+        averages = (last_cases[index] - first_cases[index]) / len(num_days)
+        avg_cases.append((countries[index], averages))
     return avg_cases
 
 def percentage_recovered(cur, conn):
@@ -70,6 +75,21 @@ def percentage_recovered(cur, conn):
         percentage_list.append((country_id, percent))
     return percentage_list
 
+
+def write_csv(cur, conn, filename):
+    percent_data = percentage_recovered(cur, conn)
+    avg_cases = cases_per_day(cur, conn)
+    fieldnames = ['Country_ID', 'Percent', '', 'Country', 'Average Cases Per Day']
+    outFile = open(filename, 'w', encoding="utf8", newline = '')
+    csv_writer = csv.writer(outFile, delimiter=',')
+    csv_writer.writerow(fieldnames)
+    for i in range(len(percent_data)):
+        if i < 10:
+            csv_writer.writerow([percent_data[i][0], percent_data[i][1], '', avg_cases[i][0], avg_cases[i][1]])
+            i += 1
+        else:
+            csv_writer.writerow([percent_data[i][0], percent_data[i][1]])
+    outFile.close()
 
 
 
@@ -86,6 +106,7 @@ def main():
     cur, conn = setUpDatabase('Covid_Cases_USA.db')
     cases_per_day(cur, conn)
     percentage_recovered(cur, conn)
+    write_csv(cur, conn, 'calculations.csv')
     # setUpCasesTable(cur, conn)
 
     conn.close()
