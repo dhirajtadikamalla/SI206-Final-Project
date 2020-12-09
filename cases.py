@@ -76,31 +76,27 @@ def setUpCasesTable(cur, conn):
     #    self.start_date = start_date
     #    self.end_date = end_date
 def setUpTotalCasesTable(cur, conn):
-    cur.execute('CREATE TABLE IF NOT EXISTS TotalCases (country_id INTEGER, abbreviation CHAR(4), country TEXT, cases INTEGER)')
-    all_cases = total_cases()
+    cur.execute('CREATE TABLE IF NOT EXISTS CountryData (Country_ID INTEGER, Cases INTEGER, Recovered INTEGER, Population INTEGER)')
+    all_data = country_data(cur, conn)
     n = 0
     x = 25
-    cur.execute('SELECT country_id FROM TotalCases ORDER BY country_id DESC LIMIT 1')
+    cur.execute('SELECT country_id FROM CountryData ORDER BY country_id DESC LIMIT 1')
     try:
         last_entry = cur.fetchone()[0]
-        for index in range(len(all_cases)):
-            if all_cases[index][0] == last_entry:
+        for index in range(len(all_data)):
+            if all_data[index][0] == last_entry:
                 n = index + 1
                 x = n + 25
     except:
         last_entry = 0
 
-    for i in range(len(all_cases[n:x])):
-        data = all_cases[n + i]
+    for i in range(len(all_data[n:x])):
+        data = all_data[n + i]
         ids = data[0]
-        abbreviation = data[1]
-        country = data[2]
-        if country == 'US':
-            country = 'United States'
-        if country == 'Taiwan*':
-            country = 'Taiwan'
-        cases = data[3]
-        cur.execute('INSERT INTO TotalCases (country_id, abbreviation, country, cases) VALUES (?,?,?,?)', (ids, abbreviation, country, cases))
+        cases = data[1]
+        recovered = data[2]
+        population = data[3]
+        cur.execute('INSERT INTO CountryData (Country_ID, Cases, Recovered , Population ) VALUES (?,?,?,?)', (ids, cases, recovered, population))
     conn.commit()
 
 def get_data(start_date, end_date):
@@ -118,20 +114,32 @@ def get_data(start_date, end_date):
             dateCases.append((date, cases))
     return dateCases
 
-def total_cases():
-    cases_per_country = []
+def country_data(cur, conn):
+    cur.execute('SELECT country_id, country FROM GDP')
+    id_name = cur.fetchall()
+    per_country = []
+    
     url = 'https://covid-api.mmediagroup.fr/v1/cases'
     request = requests.get(url)
     jsons = json.loads(request.text)
-    i = 0
     for country in jsons:
-        country_id = i
-        data = jsons[country].get('All')
-        code = data.get('abbreviation')
-        confirmed = data.get('confirmed')
-        cases_per_country.append((country_id, code, country, confirmed))
-        i += 1
-    return cases_per_country
+        for name in id_name:
+            if country == 'US':
+                country = 'United States'
+            if country == 'Taiwan*':
+                country = 'Taiwan'
+            if country == name[1]:
+                country_id = name[0]
+                if country == 'United States':
+                    country = 'US'
+                if country == 'Taiwan':
+                    country = 'Taiwan*'
+                data = jsons[country].get('All')
+                confirmed = data.get('confirmed')
+                recovered = data.get('recovered')
+                population = data.get('population')
+                per_country.append((country_id, confirmed, recovered, population))
+    return per_country
 
 
 def main():
