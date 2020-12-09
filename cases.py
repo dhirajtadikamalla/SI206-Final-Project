@@ -80,7 +80,7 @@ def setUpTotalCasesTable(cur, conn):
     all_data = country_data(cur, conn)
     n = 0
     x = 25
-    cur.execute('SELECT country_id FROM CountryData ORDER BY country_id DESC LIMIT 1')
+    cur.execute('SELECT Country_ID FROM CountryData ORDER BY Country_ID DESC LIMIT 1')
     try:
         last_entry = cur.fetchone()[0]
         for index in range(len(all_data)):
@@ -115,7 +115,7 @@ def get_data(start_date, end_date):
     return dateCases
 
 def country_data(cur, conn):
-    cur.execute('SELECT country_id, country FROM GDP')
+    cur.execute('SELECT Country_ID, Country FROM GDP')
     id_name = cur.fetchall()
     per_country = []
     

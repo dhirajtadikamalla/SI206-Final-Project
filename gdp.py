@@ -13,12 +13,12 @@ def setUpDatabase(db_name):
     return cur, conn
 
 def setUpGDPTable(cur, conn):
-    cur.execute('CREATE TABLE IF NOT EXISTS GDP (country_id INTEGER, country TEXT, gdp INTEGER)')
+    cur.execute('CREATE TABLE IF NOT EXISTS GDP (Country_ID INTEGER, Country TEXT, GDP INTEGER)')
     countries = get_countries()
     gdps = get_data(cur, conn)
     n = 0
     x = 25
-    cur.execute('SELECT country_id FROM GDP ORDER BY country_id DESC LIMIT 1')
+    cur.execute('SELECT Country_ID FROM GDP ORDER BY Country_ID DESC LIMIT 1')
     try:
         last_entry = cur.fetchone()[0]
         for index in range(len(countries)):
@@ -34,7 +34,7 @@ def setUpGDPTable(cur, conn):
             country_id = id_list[0]
             country = data[0]
             GDP = data[1]
-        cur.execute('INSERT INTO GDP (country_id, country, gdp) VALUES (?,?, ?)', (country_id, country, GDP))
+        cur.execute('INSERT INTO GDP (Country_ID, Country, GDP) VALUES (?,?, ?)', (country_id, country, GDP))
     conn.commit()
 
 def get_countries():
