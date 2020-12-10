@@ -5,6 +5,8 @@ import csv
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+matplotlib.use('qt4agg')
+
 
 #Run gdp.py first 4 times, then run cases.py 5 times, then run analysis.py once
 #Open calculations.csv with excel
@@ -145,6 +147,8 @@ def case_vs_country(cur, conn):
     ax.set_xlabel('Country')
     ax.set_ylabel('Average Daily Cases')
     ax.set_title('Average Daily Cases per Country')
+    plt.tick_params(axis='x', which='major', labelsize=6)
+    plt.tick_params(axis='y', which='major', labelsize=6)
     fig.savefig("case_country.png")
     plt.show()
 
@@ -161,6 +165,8 @@ def case_vs_country_zoomed(cur, conn):
     ax.set_xlabel('Country')
     ax.set_ylabel('Average Daily Cases')
     ax.set_title('Average Daily Cases per Country (Zoomed)')
+    plt.tick_params(axis='x', which='major', labelsize=6)
+    plt.tick_params(axis='y', which='major', labelsize=6)
     fig.savefig("case_country_zoomed.png")
     plt.show()
 
