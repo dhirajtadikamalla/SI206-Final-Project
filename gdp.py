@@ -6,6 +6,8 @@ import json
 import os
 from datetime import datetime, timedelta
 
+#run this first
+
 def setUpDatabase(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path+'/'+db_name)
