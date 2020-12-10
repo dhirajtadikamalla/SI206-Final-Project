@@ -4,7 +4,8 @@ import json
 import os
 import country_converter as coco
 
-#Run gdp.py first 4 times, then run cases.py 5 times, then run analysis.py once
+#Run gdp.py first 4 times, then run cases.py 5 times
+#Then run analysis.py once
 
 def setUpDatabase(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
