@@ -1,12 +1,10 @@
 from bs4 import BeautifulSoup
-import unittest
 import requests
 import sqlite3
 import json
 import os
-from datetime import datetime, timedelta
 
-#run this first
+#Run gdp.py first 4 times, then run cases.py 5 times, then run analysis.py once
 
 def setUpDatabase(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
@@ -99,8 +97,6 @@ def get_data(cur, conn):
             country_data.append(stripped)
         country = country_data[0]
         current = country_data[1]
-        # previous = country_data[2]
-        # update_month = country_data[3]
         for tup in countries:
             if country == tup[1]:
                 all_data.append((country, current))
@@ -114,8 +110,6 @@ def get_data(cur, conn):
             country_data.append(stripped)
         country = country_data[0]
         current = country_data[1]
-        # previous = country_data[2]
-        # update_month = country_data[3]
         for tup in countries:
             if country == tup[1]:
                 all_data.append((country, current))

@@ -1,31 +1,13 @@
-import requests
 import sqlite3
 import json
 import os
 import csv
-import re
 import matplotlib
 import matplotlib.pyplot as plt
-import datetime as dt
-import matplotlib.dates as mdates
 import numpy as np
-import plotly.express as px
-import pandas as pd
 
-'''
-1. pull cases from each day for 100 days (USA)
-2. Total Cases until now (100 countries) vs. GDP
-'''
-
-#stringency
-
-# def readDataFromFile(filename):
-#     full_path = os.path.join(os.path.dirname(__file__), filename)
-#     f = open(full_path, encoding='utf-8')
-#     file_data = f.read()
-#     f.close()  
-#     json_data = json.loads(file_data)
-#     return json_data
+#Run gdp.py first 4 times, then run cases.py 5 times, then run analysis.py once
+#Open calculations.csv with excel
 
 def setUpDatabase(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
@@ -33,27 +15,6 @@ def setUpDatabase(db_name):
     cur = conn.cursor()
     return cur, conn
 
-# def setUpCasesTable(cur, conn):
-#     cur.execute('CREATE TABLE IF NOT EXISTS Stringencies (Date CHAR(10), Stringencies INTEGER)')
-#     all_cases = get_data('2020-08-01', '2020-12-01')
-#     n = 0
-#     x = 25
-#     cur.execute('SELECT Date FROM Stringencies ORDER BY Date DESC LIMIT 1')
-#     try:
-#         last_entry = cur.fetchone()[0]
-#         for index in range(len(all_cases)):
-#             if all_cases[index][0] == last_entry:
-#                 n = index + 1
-#                 x = n + 25
-#     except:
-#         last_entry = 0
-
-#     for i in range(len(all_cases[n:x])):
-#         data = all_cases[n + i]
-#         date = data[0]
-#         cases = data[1]
-#         cur.execute('INSERT INTO Stringencies (Date, Stringencies) VALUES (?,?)', (date, cases))
-#     conn.commit()
 def cases_per_day(cur, conn):
     new_cases = []
     cur.execute("SELECT Date, United_States FROM Cases")
@@ -117,21 +78,7 @@ def new_cases_US(cur, conn):
     new_cases = cases_per_day(cur, conn)
     for date, cases in new_cases:
         x.append(date)
-        y.append(cases)
-    start = x[0]
-    date1 = start.split('-')
-    start_year = int(date1[0])
-    start_month = int(date1[1])
-    start_day = int(date1[2])
-    end = x[-1]
-    date2 = end.split('-')
-    end_year = int(date2[0])
-    end_month = int(date2[1])
-    end_day = int(date2[2])
-
-    
-    #dates = mdates.drange(dt.datetime(start_year, start_month, start_day), dt.datetime(end_year, end_month, end_day), dt.timedelta(weeks=3))
-    # create the line graph
+        y.append(cases)    
     fig, ax = plt.subplots()
     ax.plot(x,y)
     ax.set_xlabel('Date')
@@ -139,10 +86,6 @@ def new_cases_US(cur, conn):
     ax.set_title('Daily New Cases in the US')
     ax.grid()
     fig.autofmt_xdate()
-    # N = 5
-    # ind = np.arange(N)
-    # ax.set_xticks(ind)
-    # ax.set_xticklabels(('August 2020', 'September 2020', 'October 2020', 'November 2020', 'December 2020'))
     plt.xticks(y, x, rotation='vertical')
     N = 122
     data = np.linspace(0, N, N)
@@ -165,10 +108,8 @@ def new_cases_US(cur, conn):
 
     plt.tick_params(axis='x', which='major', labelsize=4)
     plt.tick_params(axis='y', which='major', labelsize=4)
-    # save the line graph
     fig.savefig("newcases.png")
 
-    # show the line graph
     plt.show()
 
 def case_vs_population(cur, conn):
@@ -226,27 +167,19 @@ def zoomed_in(cur, conn):
 
 
 def main():
-    # USA_cases = dayCase('2020-08-01', '2020-12-01')
-    # USA_cases.create_request_url()
-    # USA_cases.get_data()
-    # create_request_url('2020-08-01', '2020-12-01')
-
-
-
-
     cur, conn = setUpDatabase('Covid_Cases_USA.db')
     avg_new_cases(cur, conn)
     cases_per_day(cur, conn)
     percentage_recovered(cur, conn)
     write_csv(cur, conn, 'calculations.csv')
-    # setUpCasesTable(cur, conn)
+
+    #VISUALIZATIONS
+    new_cases_US(cur, conn)
+    case_vs_population(cur, conn)
     recovered_vs_gdp(cur, conn)
     zoomed_in(cur, conn)
-    case_vs_population(cur, conn)
-    new_cases_US(cur, conn)
+    
     conn.close()
-    # json_data = readDataFromFile('yelp_data.txt')
-    # setUpCategoriesTable(json_data, cur, conn)
     
 
 if __name__ == "__main__":
