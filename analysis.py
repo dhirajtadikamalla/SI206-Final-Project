@@ -56,18 +56,18 @@ def write_csv(cur, conn, filename):
     percent_data = percentage_recovered(cur, conn)
     avg_cases = avg_new_cases(cur, conn)
     new_cases = cases_per_day(cur, conn)
-    fieldnames = ['Country', 'Percent', 'GDP', ' ', 'Country', 'Average Cases Per Day', ' ', 'Date', 'New Cases']
+    fieldnames = ['Country', 'Percent', 'GDP', '', 'Country', 'Average Cases Per Day', '', 'Date', 'New Cases']
     outFile = open(filename, 'w', encoding="utf8", newline = '')
     csv_writer = csv.writer(outFile, delimiter=',')
-    csv_writer.writerow(['PERCENT RECOVERED', ' ', ' ',' ', 'AVERAGE DAILY CASES', ' ', '', 'NEW DAILY CASES'])
+    csv_writer.writerow(['PERCENT RECOVERED', '', '','', 'AVERAGE DAILY CASES', '', '', 'NEW DAILY CASES'])
     csv_writer.writerow(fieldnames)
     for i in range(len(new_cases)):
         if i < 10:
-            csv_writer.writerow([percent_data[i][0], percent_data[i][1], percent_data[i][2], ' ', avg_cases[i][0], avg_cases[i][1], ' ', new_cases[i][0], new_cases[i][1]])
+            csv_writer.writerow([percent_data[i][0], percent_data[i][1], percent_data[i][2], '', avg_cases[i][0], avg_cases[i][1], '', new_cases[i][0], new_cases[i][1]])
         elif i >= 10 and i < 100:
-            csv_writer.writerow([percent_data[i][0], percent_data[i][1], percent_data[i][2], ' ', ' ', ' ', ' ', new_cases[i][0], new_cases[i][1]])
+            csv_writer.writerow([percent_data[i][0], percent_data[i][1], percent_data[i][2], '', '', '', '', new_cases[i][0], new_cases[i][1]])
         else:
-            csv_writer.writerow([' ', ' ', ' ', ' ', ' ', ' ', ' ', new_cases[i][0], new_cases[i][1]])
+            csv_writer.writerow(['', '', '', '', '', '', '', new_cases[i][0], new_cases[i][1]])
     outFile.close()
 
 #VISUALIZATIONS
