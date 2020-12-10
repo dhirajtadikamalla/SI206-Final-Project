@@ -132,6 +132,38 @@ def case_vs_population(cur, conn):
     fig.savefig("avgcases.png")
     plt.show()
 
+def case_vs_country(cur, conn):
+    x = []
+    y = []
+    avg_cases = avg_new_cases(cur, conn)
+    for country, cases in avg_cases:
+        x.append(country)
+        y.append(cases)
+    fig = plt.figure()
+    ax = fig.add_subplot()
+    ax.bar(x,y)
+    ax.set_xlabel('Country')
+    ax.set_ylabel('Average Daily Cases')
+    ax.set_title('Average Daily Cases per Country')
+    fig.savefig("case_country.png")
+    plt.show()
+
+def case_vs_country_zoomed(cur, conn):
+    x = []
+    y = []
+    avg_cases = avg_new_cases(cur, conn)
+    for country, cases in avg_cases:
+        x.append(country)
+        y.append(cases)
+    fig = plt.figure()
+    ax = fig.add_subplot()
+    ax.bar(x[1:],y[1:])
+    ax.set_xlabel('Country')
+    ax.set_ylabel('Average Daily Cases')
+    ax.set_title('Average Daily Cases per Country (Zoomed)')
+    fig.savefig("case_country_zoomed.png")
+    plt.show()
+
 def recovered_vs_gdp(cur, conn):
     x = []
     y = []
@@ -175,6 +207,8 @@ def main():
 
     #VISUALIZATIONS
     new_cases_US(cur, conn)
+    case_vs_country(cur, conn)
+    case_vs_country_zoomed(cur, conn)
     case_vs_population(cur, conn)
     recovered_vs_gdp(cur, conn)
     zoomed_in(cur, conn)
