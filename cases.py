@@ -131,6 +131,7 @@ def setUpTotalCasesTable(cur, conn):
         recovered = data[2]
         population = data[3]
         cur.execute('INSERT INTO CountryData (Country_ID, Cases, Recovered , Population ) VALUES (?,?,?,?)', (ids, cases, recovered, population))
+    
     conn.commit()
 
 # def get_data(start_date, end_date):

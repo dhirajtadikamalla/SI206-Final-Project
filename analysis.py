@@ -48,8 +48,16 @@ def setUpDatabase(db_name):
 #         cases = data[1]
 #         cur.execute('INSERT INTO Stringencies (Date, Stringencies) VALUES (?,?)', (date, cases))
 #     conn.commit()
-
 def cases_per_day(cur, conn):
+    new_cases = []
+    cur.execute("SELECT Date, United_States FROM Cases")
+    us = cur.fetchall()
+    for i in range(1, len(us)):
+        difference = us[i][1] - us[i - 1][1]
+        new_cases.append((us[i][0], difference))
+    return new_cases
+
+def avg_new_cases(cur, conn):
     avg_cases = []
     cur.execute('SELECT United_States, Russia, Poland, Norway, Egypt, New_Zealand, Cuba, Ghana, Lebanon, Uganda FROM Cases ORDER BY Date ASC LIMIT 1')
     first_cases = cur.fetchall()[0]
@@ -64,31 +72,35 @@ def cases_per_day(cur, conn):
     return avg_cases
 
 def percentage_recovered(cur, conn):
-    cur.execute('SELECT Country_ID, Cases, Recovered FROM CountryData')
+    cur.execute('SELECT CountryData.Cases, CountryData.Recovered, GDP.Country, GDP.GDP FROM CountryData INNER JOIN GDP ON CountryData.Country_ID = GDP.Country_ID')
     percentage_list = []
     all_data = cur.fetchall()
     for data in all_data:
-        country_id = data[0]
-        cases = data[1]
-        recovered = data[2]
+        cases = data[0]
+        recovered = data[1]
+        country = data[2]
+        gdp = data[3]
         percent = (recovered / cases) * 100
-        percentage_list.append((country_id, percent))
+        percentage_list.append((country, percent, gdp))
     return percentage_list
 
 
 def write_csv(cur, conn, filename):
     percent_data = percentage_recovered(cur, conn)
-    avg_cases = cases_per_day(cur, conn)
-    fieldnames = ['Country_ID', 'Percent', '', 'Country', 'Average Cases Per Day']
+    avg_cases = avg_new_cases(cur, conn)
+    new_cases = cases_per_day(cur, conn)
+    fieldnames = ['Country', 'Percent', 'GDP', ' ', 'Country', 'Average Cases Per Day', ' ', 'Date', 'New Cases']
     outFile = open(filename, 'w', encoding="utf8", newline = '')
     csv_writer = csv.writer(outFile, delimiter=',')
+    csv_writer.writerow(['PERCENT RECOVERED', ' ', ' ',' ', 'AVERAGE DAILY CASES', ' ', '', 'NEW DAILY CASES'])
     csv_writer.writerow(fieldnames)
-    for i in range(len(percent_data)):
+    for i in range(len(new_cases)):
         if i < 10:
-            csv_writer.writerow([percent_data[i][0], percent_data[i][1], '', avg_cases[i][0], avg_cases[i][1]])
-            i += 1
+            csv_writer.writerow([percent_data[i][0], percent_data[i][1], percent_data[i][2], ' ', avg_cases[i][0], avg_cases[i][1], ' ', new_cases[i][0], new_cases[i][1]])
+        elif i >= 10 and i < 100:
+            csv_writer.writerow([percent_data[i][0], percent_data[i][1], percent_data[i][2], ' ', ' ', ' ', ' ', new_cases[i][0], new_cases[i][1]])
         else:
-            csv_writer.writerow([percent_data[i][0], percent_data[i][1]])
+            csv_writer.writerow([' ', ' ', ' ', ' ', ' ', ' ', ' ', new_cases[i][0], new_cases[i][1]])
     outFile.close()
 
 
@@ -104,6 +116,7 @@ def main():
 
 
     cur, conn = setUpDatabase('Covid_Cases_USA.db')
+    avg_new_cases(cur, conn)
     cases_per_day(cur, conn)
     percentage_recovered(cur, conn)
     write_csv(cur, conn, 'calculations.csv')
