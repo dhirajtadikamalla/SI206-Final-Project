@@ -1,10 +1,16 @@
-import unittest
 import requests
 import sqlite3
 import json
 import os
 import csv
-from datetime import datetime, timedelta
+import re
+import matplotlib
+import matplotlib.pyplot as plt
+import datetime as dt
+import matplotlib.dates as mdates
+import numpy as np
+import plotly.express as px
+import pandas as pd
 
 '''
 1. pull cases from each day for 100 days (USA)
@@ -103,6 +109,119 @@ def write_csv(cur, conn, filename):
             csv_writer.writerow([' ', ' ', ' ', ' ', ' ', ' ', ' ', new_cases[i][0], new_cases[i][1]])
     outFile.close()
 
+#VISUALIZATIONS
+def new_cases_US(cur, conn):
+    x = []
+    y = []
+# Data for plotting
+    new_cases = cases_per_day(cur, conn)
+    for date, cases in new_cases:
+        x.append(date)
+        y.append(cases)
+    start = x[0]
+    date1 = start.split('-')
+    start_year = int(date1[0])
+    start_month = int(date1[1])
+    start_day = int(date1[2])
+    end = x[-1]
+    date2 = end.split('-')
+    end_year = int(date2[0])
+    end_month = int(date2[1])
+    end_day = int(date2[2])
+
+    
+    #dates = mdates.drange(dt.datetime(start_year, start_month, start_day), dt.datetime(end_year, end_month, end_day), dt.timedelta(weeks=3))
+    # create the line graph
+    fig, ax = plt.subplots()
+    ax.plot(x,y)
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Number of New Cases')
+    ax.set_title('Daily New Cases in the US')
+    ax.grid()
+    fig.autofmt_xdate()
+    # N = 5
+    # ind = np.arange(N)
+    # ax.set_xticks(ind)
+    # ax.set_xticklabels(('August 2020', 'September 2020', 'October 2020', 'November 2020', 'December 2020'))
+    plt.xticks(y, x, rotation='vertical')
+    N = 122
+    data = np.linspace(0, N, N)
+
+    plt.plot(data)
+
+    plt.xticks(range(N)) # add loads of ticks
+    plt.grid()
+
+    plt.gca().margins(x=0)
+    plt.gcf().canvas.draw()
+    tl = plt.gca().get_xticklabels()
+    maxsize = max([t.get_window_extent().width for t in tl])
+    m = 0.2 # inch margin
+    s = maxsize/plt.gcf().dpi*N+2*m
+    margin = m/plt.gcf().get_size_inches()[0]
+
+    plt.gcf().subplots_adjust(left=.07, right=1.-margin)
+    plt.gcf().set_size_inches(s, plt.gcf().get_size_inches()[1])
+
+    plt.tick_params(axis='x', which='major', labelsize=4)
+    plt.tick_params(axis='y', which='major', labelsize=4)
+    # save the line graph
+    fig.savefig("newcases.png")
+
+    # show the line graph
+    plt.show()
+
+def case_vs_population(cur, conn):
+    x = []
+    y = []
+    avg_cases = avg_new_cases(cur, conn)
+    for country, cases in avg_cases:
+        country = country.replace('_', ' ')
+        cur.execute(f'SELECT Country_ID FROM GDP WHERE Country = "{country}"')
+        country_id = cur.fetchone()[0]
+        cur.execute(f'SELECT Population FROM CountryData WHERE Country_ID = "{country_id}"')
+        population = cur.fetchone()[0]
+        x.append(population)
+        y.append(cases)
+    fig, ax = plt.subplots()
+    ax.set_xlabel('Population')
+    ax.set_ylabel('Average Daily Cases')
+    ax.set_title('Population vs. Average Daily Cases')
+    plt.scatter(x, y)
+    fig.savefig("avgcases.png")
+    plt.show()
+
+def recovered_vs_gdp(cur, conn):
+    x = []
+    y = []
+    recovered = percentage_recovered(cur, conn)
+    for country, percent, gdp in recovered:
+        x.append(gdp)
+        y.append(percent)
+    fig, ax = plt.subplots()
+    ax.set_xlabel('GDP')
+    ax.set_ylabel('Percent Recovered')
+    ax.set_title('GDP vs. Percent Recovered')
+    plt.scatter(x, y)
+    fig.savefig("recovered.png")
+    plt.show()
+
+def zoomed_in(cur, conn):
+    x = []
+    y = []
+    recovered = percentage_recovered(cur, conn)
+    for country, percent, gdp in recovered:
+        if country != 'United States':
+            if country != 'China':
+                x.append(gdp)
+                y.append(percent)
+    fig, ax = plt.subplots()
+    ax.set_xlabel('GDP')
+    ax.set_ylabel('Percent Recovered')
+    ax.set_title('GDP vs. Percent Recovered (Zoomed)')
+    plt.scatter(x, y)
+    fig.savefig("zoomed.png")
+    plt.show()
 
 
 
@@ -121,7 +240,10 @@ def main():
     percentage_recovered(cur, conn)
     write_csv(cur, conn, 'calculations.csv')
     # setUpCasesTable(cur, conn)
-
+    recovered_vs_gdp(cur, conn)
+    zoomed_in(cur, conn)
+    case_vs_population(cur, conn)
+    new_cases_US(cur, conn)
     conn.close()
     # json_data = readDataFromFile('yelp_data.txt')
     # setUpCategoriesTable(json_data, cur, conn)
